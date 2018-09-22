@@ -1,5 +1,6 @@
 import cv2
 import requests
+import json
 from time import sleep
 
 if __name__ == '__main__':
@@ -32,29 +33,50 @@ if __name__ == '__main__':
     cv2.namedWindow(ORG_WINDOW_NAME)
     cv2.namedWindow(GAUSSIAN_WINDOW_NAME)
 
+    #会議名とユーザ名の取得(json_dict[num]:numの数値でユーザー名の変更)
+    headers = {"content-type": "application/json"}
+    json_str = requests.get('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/users', headers=headers)
+    print(json_str)
+    json_dict = json_str.json()
+    print(json_dict[0])
+    print('json_dict:{}'.format(json_dict[0]["user_name"]))
+    # json_str = '''
+    # {
+    #     "user_id":"1",
+    #     "user_name":"riku"
+    # }
+    # '''
+    # json_dict = json.loads(str(json_str))
+    # print(json_dict)
+    # print(json_str.status_code)    # HTTPのステータスコード取得
+    # print(json_str.text)    # レスポンスのHTMLを文字列で取得
+
     # 変換処理ループ
     while end_flag == True:
-
         # 画像の取得と顔の検出
         img = c_frame
         #img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         face_list = cascade.detectMultiScale(img, scaleFactor=1.11, minNeighbors=3, minSize=(100, 100))
+
         #文字の出力（会議名，ユーザ名）
         cv2.putText(img,'MeetingName', (5,40), cv2.FONT_HERSHEY_COMPLEX, 1.5,(255, 255, 255))
-        cv2.line(img,(2,55),(345,55),(255,255,255),2)
-        cv2.putText(img,'UserName', (15,85), cv2.FONT_HERSHEY_SIMPLEX, 1.0,(255, 255, 255))
+        cv2.line(img,(2,56),(345,56),(255,255,255),2)
+        cv2.putText(img, format(json_dict[0]["user_name"]), (15,95), cv2.FONT_HERSHEY_DUPLEX, 1.5,(255, 255, 255))
+
         # 検出した顔に印を付ける
         for (x, y, w, h) in face_list:
             color = (0, 0, 225)
             pen_w = 3
             cv2.rectangle(img, (x, y), (x+w, y+h), color, thickness = pen_w)
+
             #検出した口に印をつける
-            face_lower = int(y*1.5)
-            mouse_color = img[x:x+w, y:face_lower+h]
+            #face_lower = int(y*2)
+            mouse_color = img[x:x+w, y:y+h]
             mouse_gray = cv2.cvtColor(mouse_color, cv2.COLOR_BGR2GRAY)
             mouse = mouse_cascade.detectMultiScale(mouse_color, scaleFactor=1.1, minNeighbors=5, minSize=(100, 80))
             for (mx, my, mw, mh) in mouse:
                 cv2.rectangle(mouse_color,(mx,my),(mx+mw,my+mh),(0,255,0),2)
+
                 # 口だけ切り出して二値化画像を保存
                 threshold = 40 #二値化の閾値の設定
                 for num, rect in enumerate(mouse):
@@ -72,14 +94,15 @@ if __name__ == '__main__':
                         if val == 0:
                             cnt += 1
                     cv2.waitKey(1)
+
                     #二値化画像の黒色領域が何箇所あるかの判断→口が開いていれば黒いろ領域が多くなる＝発言している
                     if cnt > 600:
                         #print(speaking_counter, "Speaking!!")
                         speaking_counter += 1
                     #発言カウンターが10個貯まれば，サーバに秒数の送信
-                    if speaking_counter == 10:
+                    if speaking_counter == 5:
                         print("You spoke ", speaking_counter * 0.21, "second")
-                        response = requests.post('https://jsondata.okiba.me/v1/json/m1NvW180922122602', data={'start': speaking_counter * 0.21})
+                        response = requests.post('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/', data={'start': speaking_counter * 0.21})
                         #response = requests.post('http://requestbin.fullcontact.com/1au0lom1', data={'start': '2.1'})
                         speaking_counter = 0
                     else:
