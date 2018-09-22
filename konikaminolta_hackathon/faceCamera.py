@@ -8,6 +8,8 @@ if __name__ == '__main__':
     ESC_KEY = 27     # Escキー
     INTERVAL= 33     # 待ち時間
     FRAME_RATE = 30  # fps
+    ROOM_ID = 0 #ルーム指定
+    USER_ID = 0 #ユーザ指定
 
     ORG_WINDOW_NAME = "org"
     GAUSSIAN_WINDOW_NAME = "gaussian"
@@ -35,21 +37,12 @@ if __name__ == '__main__':
 
     #会議名とユーザ名の取得(json_dict[num]:numの数値でユーザー名の変更)
     headers = {"content-type": "application/json"}
-    json_str = requests.get('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/users', headers=headers)
-    print(json_str)
-    json_dict = json_str.json()
-    print(json_dict[0])
-    print('json_dict:{}'.format(json_dict[0]["user_name"]))
-    # json_str = '''
-    # {
-    #     "user_id":"1",
-    #     "user_name":"riku"
-    # }
-    # '''
-    # json_dict = json.loads(str(json_str))
-    # print(json_dict)
-    # print(json_str.status_code)    # HTTPのステータスコード取得
-    # print(json_str.text)    # レスポンスのHTMLを文字列で取得
+    json_str_room = requests.get('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/meeting/room', headers=headers)
+    json_dict_room = json_str_room.json()
+    print(json_str_room)
+    json_str_user = requests.get('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/users', headers=headers)
+    #print(json_str_user)
+    json_dict_user = json_str_user.json()
 
     # 変換処理ループ
     while end_flag == True:
@@ -59,9 +52,14 @@ if __name__ == '__main__':
         face_list = cascade.detectMultiScale(img, scaleFactor=1.11, minNeighbors=3, minSize=(100, 100))
 
         #文字の出力（会議名，ユーザ名）
-        cv2.putText(img,'MeetingName', (5,40), cv2.FONT_HERSHEY_COMPLEX, 1.5,(255, 255, 255))
-        cv2.line(img,(2,56),(345,56),(255,255,255),2)
-        cv2.putText(img, format(json_dict[0]["user_name"]), (15,95), cv2.FONT_HERSHEY_DUPLEX, 1.5,(255, 255, 255))
+        cv2.rectangle(img, (0, 0), (350, 280), (255, 255, 255), thickness=-1)
+        cv2.putText(img, format(json_dict_room[ROOM_ID]["room_name"]), (5,40), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 0))
+        cv2.line(img,(2,56),(345,56),(0,0,0),2)
+        cv2.putText(img, '--participant--', (15,95), cv2.FONT_HERSHEY_COMPLEX, 1.0,(0, 0, 0))
+        cv2.putText(img, format(json_dict_user[USER_ID]["user_name"]), (15,140), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 255))
+        cv2.putText(img, format(json_dict_user[1]["user_name"]), (15,180), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 0))
+        cv2.putText(img, format(json_dict_user[2]["user_name"]), (15,220), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 0))
+        cv2.putText(img, format(json_dict_user[3]["user_name"]), (15,260), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 0))
 
         # 検出した顔に印を付ける
         for (x, y, w, h) in face_list:
