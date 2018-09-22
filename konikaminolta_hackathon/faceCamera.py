@@ -1,4 +1,5 @@
 import cv2
+import requests
 from time import sleep
 
 if __name__ == '__main__':
@@ -74,6 +75,8 @@ if __name__ == '__main__':
                         speaking_counter += 1
                     if speaking_counter == 10:
                         print("You spoke ", speaking_counter * 0.21, "second")
+                        response = requests.post('https://jsondata.okiba.me/v1/json/m1NvW180922122602', data={'start': speaking_counter * 0.21})
+                        #response = requests.post('http://requestbin.fullcontact.com/1au0lom1', data={'start': '2.1'})
                         speaking_counter = 0
                     else:
                         continue
