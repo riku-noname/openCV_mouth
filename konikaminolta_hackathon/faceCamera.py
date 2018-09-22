@@ -100,8 +100,8 @@ if __name__ == '__main__':
                     #発言カウンターが10個貯まれば，サーバに秒数の送信
                     if speaking_counter == 5:
                         print("You spoke ", speaking_counter * 0.21, "second")
-                        response = requests.post('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/', data={'start': speaking_counter * 0.21})
-                        #response = requests.post('http://requestbin.fullcontact.com/1au0lom1', data={'start': '2.1'})
+                        response = requests.post('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/', data={'user_id':USER_ID, 'start': speaking_counter * 0.21, 'end': 0, 'room_id':ROOM_ID})
+                        #response = requests.post('http://requestbin.fullcontact.com/xxex5cxx', data={'user_id':USER_ID, 'start': speaking_counter * 0.21})
                         speaking_counter = 0
                     else:
                         continue
