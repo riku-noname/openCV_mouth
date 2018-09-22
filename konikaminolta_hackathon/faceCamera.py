@@ -1,4 +1,5 @@
 import cv2
+from time import sleep
 
 if __name__ == '__main__':
     # 定数定義
@@ -10,6 +11,8 @@ if __name__ == '__main__':
     GAUSSIAN_WINDOW_NAME = "gaussian"
 
     DEVICE_ID = 0
+
+    speaking_counter = 0
 
     # 分類器の指定
     cascade_file = "haarcascade_frontalface_default.xml"
@@ -44,9 +47,37 @@ if __name__ == '__main__':
             #検出した口に印をつける
             face_lower = int(y*1.5)
             mouse_color = img[x:x+w, y:face_lower+h]
-            mouse = mouse_cascade.detectMultiScale(mouse_color, scaleFactor=1.1, minNeighbors=10, minSize=(90, 90))
+            mouse_gray = cv2.cvtColor(mouse_color, cv2.COLOR_BGR2GRAY)
+            mouse = mouse_cascade.detectMultiScale(mouse_color, scaleFactor=1.1, minNeighbors=5, minSize=(100, 80))
             for (mx, my, mw, mh) in mouse:
                 cv2.rectangle(mouse_color,(mx,my),(mx+mw,my+mh),(0,255,0),2)
+                # 口だけ切り出して二値化画像を保存
+                threshold = 40
+                for num, rect in enumerate(mouse):
+                    x = rect[0]
+                    y = rect[1]
+                    width = rect[2]
+                    height = rect[3]
+                    dst = mouse_gray[y:y + height, x:x + width]
+                    ret,img_threshold = cv2.threshold(dst,threshold,255,cv2.THRESH_BINARY)
+                    #cv2.imshow("img_threshold",img_threshold)
+                    cv2.imwrite("./output/img_threshold.jpg",img_threshold)
+                    #print('savedimages.')
+                    binary_img = cv2.imread("./output/img_threshold.jpg")
+                    cnt =0
+                    for val in binary_img.flat:
+                        if val == 0:
+                            cnt += 1
+                    cv2.waitKey(1)
+                    if cnt > 600:
+                        #print(speaking_counter, "Speaking!!")
+                        speaking_counter += 1
+                    if speaking_counter == 10:
+                        print("You spoke ", speaking_counter * 0.21, "second")
+                        speaking_counter = 0
+                    else:
+                        continue
+                    #print("done.")
 
         # フレーム表示
         cv2.imshow(ORG_WINDOW_NAME, c_frame)
