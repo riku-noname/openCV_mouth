@@ -9,7 +9,8 @@ if __name__ == '__main__':
     INTERVAL= 33     # 待ち時間
     FRAME_RATE = 30  # fps
     ROOM_ID = 0 #ルーム指定
-    USER_ID = 0 #ユーザ指定
+    USER_ID = 1 #ユーザ指定
+    USER_NAME = "riku" #ユーザ名の指定
 
     ORG_WINDOW_NAME = "org"
     #GAUSSIAN_WINDOW_NAME = "gaussian"
@@ -44,6 +45,10 @@ if __name__ == '__main__':
     #print(json_str_user)
     json_dict_user = json_str_user.json()
 
+    #起動時にuser_idとuser_nameをサーバに送信
+    correct_USER_ID = USER_ID + 1
+    response = requests.post('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/users', data={'user_id':correct_USER_ID, 'user_name':USER_NAME})
+
     # 変換処理ループ
     while end_flag == True:
         # 画像の取得と顔の検出
@@ -57,7 +62,7 @@ if __name__ == '__main__':
         cv2.line(img,(2,56),(345,56),(0,0,0),2)
         cv2.putText(img, '--participant--', (15,95), cv2.FONT_HERSHEY_COMPLEX, 1.0,(0, 0, 0))
         cv2.putText(img, format(json_dict_user[USER_ID]["user_name"]), (15,140), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 255))
-        cv2.putText(img, format(json_dict_user[1]["user_name"]), (15,180), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 0))
+        cv2.putText(img, format(json_dict_user[4]["user_name"]), (15,180), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 0))
         cv2.putText(img, format(json_dict_user[2]["user_name"]), (15,220), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 0))
         cv2.putText(img, format(json_dict_user[3]["user_name"]), (15,260), cv2.FONT_HERSHEY_COMPLEX, 1.5,(0, 0, 0))
 
@@ -68,10 +73,10 @@ if __name__ == '__main__':
             cv2.rectangle(img, (x, y), (x+w, y+h), color, thickness = pen_w)
 
             #検出した口に印をつける
-            #face_lower = int(y*2)
-            mouse_color = img[x:x+w, y:y+h]
+            face_lower = int(h/2)
+            mouse_color = img[x:x+w, y+face_lower:y+h]
             mouse_gray = cv2.cvtColor(mouse_color, cv2.COLOR_BGR2GRAY)
-            mouse = mouse_cascade.detectMultiScale(mouse_color, scaleFactor=1.1, minNeighbors=5, minSize=(100, 80))
+            mouse = mouse_cascade.detectMultiScale(mouse_gray, scaleFactor=1.1, minNeighbors=5, minSize=(100, 80))
             for (mx, my, mw, mh) in mouse:
                 cv2.rectangle(mouse_color,(mx,my),(mx+mw,my+mh),(0,255,0),2)
 
@@ -100,7 +105,7 @@ if __name__ == '__main__':
                     #発言カウンターが5個貯まれば，サーバに秒数の送信
                     if speaking_counter == 5:
                         print("You spoke ", speaking_counter * 0.21, "second")
-                        response = requests.post('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/', data={'user_id':USER_ID, 'start': speaking_counter * 0.21, 'end': 0, 'room_id':ROOM_ID})
+                        response = requests.post('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/meeting/speaking', data={'user_id':correct_USER_ID, 'start': speaking_counter * 0.21, 'end': 0, 'room_id':ROOM_ID})
                         #response = requests.post('http://requestbin.fullcontact.com/xxex5cxx', data={'user_id':USER_ID, 'start': speaking_counter * 0.21})
                         speaking_counter = 0
                     else:
