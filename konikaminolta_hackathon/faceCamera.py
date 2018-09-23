@@ -12,7 +12,7 @@ if __name__ == '__main__':
     USER_ID = 0 #ユーザ指定
 
     ORG_WINDOW_NAME = "org"
-    GAUSSIAN_WINDOW_NAME = "gaussian"
+    #GAUSSIAN_WINDOW_NAME = "gaussian"
 
     DEVICE_ID = 0
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     # ウィンドウの準備
     cv2.namedWindow(ORG_WINDOW_NAME)
-    cv2.namedWindow(GAUSSIAN_WINDOW_NAME)
+    #cv2.namedWindow(GAUSSIAN_WINDOW_NAME)
 
     #会議名とユーザ名の取得(json_dict[num]:numの数値でユーザー名の変更)
     headers = {"content-type": "application/json"}
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                     if cnt > 600:
                         #print(speaking_counter, "Speaking!!")
                         speaking_counter += 1
-                    #発言カウンターが10個貯まれば，サーバに秒数の送信
+                    #発言カウンターが5個貯まれば，サーバに秒数の送信
                     if speaking_counter == 5:
                         print("You spoke ", speaking_counter * 0.21, "second")
                         response = requests.post('http://ec2-13-231-238-116.ap-northeast-1.compute.amazonaws.com:3000/', data={'user_id':USER_ID, 'start': speaking_counter * 0.21, 'end': 0, 'room_id':ROOM_ID})
@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
         # フレーム表示
         cv2.imshow(ORG_WINDOW_NAME, c_frame)
-        cv2.imshow(GAUSSIAN_WINDOW_NAME, img)
+        #cv2.imshow(GAUSSIAN_WINDOW_NAME, img)
 
         # Escキーで終了
         key = cv2.waitKey(INTERVAL)
